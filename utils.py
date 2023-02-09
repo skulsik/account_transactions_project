@@ -2,7 +2,12 @@ import requests, datetime
 
 
 class ListOfOperation:
-    def modified_from_account(self, operation):
+    def __init__(self):
+        self.list_of_operations = []
+        self.list_of_date = []
+
+
+    def modified_from_account(self, operation={}):
         """
         Скрываем часть счета отправителя, разбиваем счет по 4 цифры
         :param operation: Передает строку с названием счета и сам счет, может быть пустая строка
@@ -32,35 +37,34 @@ class ListOfOperation:
         else:
             return "Номер счета неизвестен"
 
-    def modified_to_account(self, operation):
+    def modified_to_account(self, operation=""):
         """
         Скрываем часть счета получателя
         :param operation: Передает строку с названием счета и сам счет
-        :return: Возврат частично скрытых символов в счете
+        :return: Возврат частично скрытых символов в счете, либо если передается пустая строка вывод ошибки
         """
+        if operation == "":
+            return "Номер счета неизвестен"
+        # Скрываем символы
         to_account = operation[0:4] + " **" + operation[21:25]
         return to_account
-
-
-    def __init__(self):
-        self.list_of_operations = []
-        self.list_of_date = []
 
 
     def load_list_of_operations(self, http_json):
         """
         получает файл со списком операций, совершенных клиентом банка: с внешнего ресурса
         :param http_json: ссылка на фаил json
-        :return:
+        :return: Возвращает список операций
         """
         request = requests.get(http_json)
         self.list_of_operations = request.json()
+        return self.list_of_operations
 
 
     def add_list_of_date(self):
         """
         Создание списака с датами успешных операций
-        :return:
+        :return: Возвращает список успешных операций
         """
         for operation in self.list_of_operations:
 
@@ -70,23 +74,26 @@ class ListOfOperation:
                 # Отбор только успешных операций и запись их в список
                 if operation['state'] == 'EXECUTED':
                     self.list_of_date.append(operation['date'])
+        return self.list_of_date
 
 
     def sort_list_of_date(self):
         """
         Сортировка списка с датами, в порядке убывания
-        :return:
+        :return: Возвращает отсортированный список
         """
         self.list_of_date.sort(reverse=True)
+        return self.list_of_date
 
 
     def range_list_of_date(self, number_of_operations = 1):
         """
         Оставляем желаемое количство дат(операций), от остальных избавляемся
         :param number_of_operations: количество дат(в дальнейшем операций, выведенных на экран)
-        :return:
+        :return: Возврат списка с нужным количеством дат
         """
         self.list_of_date = self.list_of_date[0:number_of_operations]
+        return self.list_of_date
 
 
     def print_list_of_operations(self):
